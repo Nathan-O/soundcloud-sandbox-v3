@@ -47,7 +47,7 @@
    <br><br><br>
 
 <div>
-   <ul id="playlist">
+   <ol id="playlist">
       <% @tracks.each_with_index do |track, index|%>
       <li>
          <div>
@@ -60,7 +60,7 @@
          </div>
       </li>
       <%end%>
-   </ul>
+   </ol>
 </div>
 
 
@@ -242,12 +242,12 @@ function renderAudioPlayer() {
          </ul>
          <p>Song List</p>
          <form id="song-list">
-            <ul id="playlist-list">
+            <ol id="playlist-list">
                {{ for (var j = 0; j <= songData.trackData.length-1; j++){ }}
                <!-- Note: This line is an <a> inside <label> , connected to an <input> chkbox, all wrapped in <li> -->
                <li> <input type="checkbox" id="chkbx{{= j }}"> <label for="chkbx{{= j }}"> <a href="{{= songData.trackData[j].url }}"> {{= songData.trackData[j].title }} </a> </label> </li>
                {{ } }}
-            </ul>
+            </ol>
             <br>
             <button id="re-render">Regenerate</button>
             <script>
