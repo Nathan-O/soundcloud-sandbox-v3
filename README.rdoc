@@ -1,4 +1,8 @@
 =Nick's SoundCloud SandBox
+
+**Note:
+This is a version of Nick's SoundCloud Sandbox. It sets the playlist to dynamically be reset on the client-side.
+
 === To get started:
 
 * bundle install
@@ -6,6 +10,3 @@
 * rails s
 * Check out the player at localhost:3000
 * Take a look at the welcome controller and index view to see how it all works
-
-
-
