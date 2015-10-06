@@ -1,0 +1,261 @@
+<header>
+   <h1>Create a Playlist</h1>
+</header>
+
+<div>
+   <form id="list-parms">
+      <select placeholder="Genre" id="genre">
+         <option value="" disabled selected>Select Genre</option>
+         <option value="rock">Rock</option>
+         <option value="indie">Indie</option>
+         <option value="rap">Rap</option>
+         <option value="country">Country</option>
+      </select>
+
+      <label for="duration">Playlist Length</label>
+      <input type="number" id="duration" placeholder="Minutes">
+
+      <button id="get-params">Generate Playlist </button>
+   </form>
+</div>
+
+<br><br>
+
+<div>
+   <div id="audio-placeholder"></div>
+</div>
+
+<br><br>
+
+<!-- PLAYLIST PLACEHOLDER -->
+<div id="playlist-placeholder">
+   <h3>Playlist Render</h3>
+   <ul>
+      <li> Genre: Nothing</li>
+      <li> Num of Songs: 0</li>
+   </ul>
+</div>
+
+   <br><br><br>
+
+<div>
+   <ul id="playlist">
+      <% @tracks.each_with_index do |track, index|%>
+      <li>
+         <div>
+            <h4> Main: <%=link_to @names[index], track%> </h4>
+            <ul>
+               <li id="nameid<%= index %>"><%= @names[index] %> </li>
+               <li> Index: <%= index %> </li>
+               <li id="urlid<%= index %>"> <%= track %> </li>
+            </ul>
+         </div>
+      </li>
+      <%end%>
+   </ul>
+</div>
+
+<!--
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+                     Jacasvript
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+-->
+
+<script>
+_.templateSettings = {
+    interpolate: /\{\{\=(.+?)\}\}/g,
+    evaluate: /\{\{(.+?)\}\}/g
+};
+
+/*
+////////////////////////////////////////
+Play Songs Functions
+////////////////////////////////////////
+*/
+
+var audio;
+var playlist;
+var tracks;
+var current;
+
+
+function init(){
+    current = 0;
+    audio = $('#audio');
+    playlist = $('#playlist-list');
+    tracks = playlist.find('li a');
+    len = tracks.length - 1;
+    audio[0].volume = .50;
+    audio[0].play();
+    playlist.find('a').click(function(e){
+        e.preventDefault();
+        link = $(this);
+        current = link.parent().index();
+        run(link, audio[0]);
+    });
+    audio[0].addEventListener('ended',function(e){
+        current++;
+        if(current == len){
+            current = 0;
+            link = playlist.find('a')[0];
+        }else{
+            link = playlist.find('a')[current];
+        }
+        run($(link),audio[0]);
+    });
+}
+function run(link, player){
+        player.src = link.attr('href');
+        par = link.parent();
+        par.addClass('active').siblings().removeClass('active');
+        audio[0].load();
+        audio[0].play();
+}
+
+/*
+///////////////////////////////////////
+Generate Playlist Functions
+///////////////////////////////////////
+*/
+
+// data
+var shoes = "Not a Shoe";
+var songData = {}
+var timesRun = timesRun || 0;
+var nextTrackNum;
+
+$(document).ready(function(){
+
+   $("#get-params").on("click", function(e){
+      e.stopImmediatePropagation();
+      e.preventDefault();
+
+      var genre = $("#genre").val();
+      var duration = $("#duration").val();
+      var songNum = Math.round(duration / 3.5);
+      // assign params to object
+      songData.duration = duration;
+      songData.tracksNum = songNum;
+      songData.genre = genre;
+
+      var tData = []
+      for (var i = 0; i <= songNum - 1; i++) {
+         //console.log(i);
+         tData[i] = {}
+         tData[i].indexNum = i;
+         tData[i].url = $("#urlid" + i).text();
+         tData[i].title = $("#nameid" + i).text();
+      };
+      //console.log(tData); // <--- returns right data
+      songData.trackData = tData;
+      //console.log(songData);
+
+      //render playlist & audio player
+
+      renderPlaylist(songData);
+      renderAudioPlayer();
+   });
+
+});
+
+function renderPlaylist(data){
+   //console.log("Git to renderTest");
+   //console.log(timesRun);
+   if (timesRun === 0) {
+      //console.log("IF");
+      timesRun += 1;
+      var playlistTemplate = _.template($('#playlist-template').html());
+      var playlistHtml = playlistTemplate(songData);
+      $("#playlist-placeholder").append(playlistHtml);
+   } else if (timesRun > 0) {
+      //console.log("ELSE IF");
+      $("#playlist-placeholder").empty();
+      timesRun += 1;
+      var playlistTemplate = _.template($('#playlist-template').html());
+      var playlistHtml = playlistTemplate(songData);
+      $("#playlist-placeholder").append(playlistHtml);
+   };
+}
+
+function filterList() {
+   nextTrackNum = nextTrackNum || songData.trackData.length-1;
+   //console.log(nextTrackNum);
+   for (var n = 0; n <= songData.trackData.length-1; n+=1) {
+      if ($("#chkbx" + n).is(':checked')) {
+         songData.trackData[n] = songData.trackData[n];
+      } else {
+         //pull unchecked song and add next selection
+         nextTrackNum += 1;
+
+         console.log("Next Track id = " + nextTrackNum);
+
+         songData.trackData[n] = {};
+         songData.trackData[n].indexNum = nextTrackNum;
+         songData.trackData[n].url = $("#urlid" + nextTrackNum).text();
+         songData.trackData[n].title = $("#nameid" + nextTrackNum).text();
+      };
+   };
+   //console.log(songData.trackData);
+   //render new list
+   renderPlaylist(songData);
+}
+
+function renderAudioPlayer() {
+   var audioTemplate = _.template($('#audio-template').html());
+   var audioHtml = audioTemplate(songData);
+   $("#audio-placeholder").append(audioHtml);
+}
+
+</script>
+
+<!--
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+                     TEMPLATES (x2)
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+-->
+<!-- ** 1 ** -->
+<script type="text/template" id="playlist-template">
+   <div class="play-list" id="playlist-placeholder">
+      <div id="play-list">
+         <h3>Playlist</h3>
+         <ul>
+            <li> Genre: {{= songData.genre}}</li>
+            <li> Num of Songs: {{= songData.tracksNum }} </li>
+            <li> Duration: {{= songData.duration }} </li>
+         </ul>
+         <p>Song List</p>
+         <form id="song-list">
+            <ul id="playlist-list">
+               {{ for (var j = 0; j <= songData.trackData.length-1; j++){ }}
+               <li> <input type="checkbox" id="chkbx{{= j }}"> <label for="chkbx{{= j }}"> <a href="{{= songData.trackData[j].url }}"> {{= songData.trackData[j].title }} </a> </label> </li>
+               {{ } }}
+            </ul>
+            <br>
+            <button id="re-render">Regenerate</button>
+            <script>
+               $("#re-render").on("click", function(e){
+                  e.preventDefault();
+                  e.stopImmediatePropagation();
+                  filterList();
+               });
+            </script>
+         </form>
+      </div>
+   </div>
+</script>
+
+<!-- ** 2 ** -->
+<script type="text/template" id="audio-template">
+   <div id="audio">
+      <div id="player">
+         <%= audio_tag @tracks[0], autoplay: true, controls: true, id: 'audio' %>
+      </div>
+      <script>
+         init();
+      </script>
+   </div>
+</script>
