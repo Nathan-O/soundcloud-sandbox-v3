@@ -1,3 +1,11 @@
+<!--
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+                     HTML
+            http://localhost:3000/new
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+-->
 <header>
    <h1>Create a Playlist</h1>
 </header>
@@ -55,6 +63,7 @@
    </ul>
 </div>
 
+
 <!--
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -80,6 +89,7 @@ var playlist;
 var tracks;
 var current;
 
+/* This portion of the Javascript (Play Songs functions) was written by Nick */
 
 function init(){
     current = 0;
@@ -131,29 +141,25 @@ $(document).ready(function(){
    $("#get-params").on("click", function(e){
       e.stopImmediatePropagation();
       e.preventDefault();
-
+      // Grab params
       var genre = $("#genre").val();
       var duration = $("#duration").val();
       var songNum = Math.round(duration / 3.5);
-      // assign params to object
+      // Assign params to object
       songData.duration = duration;
       songData.tracksNum = songNum;
       songData.genre = genre;
 
       var tData = []
       for (var i = 0; i <= songNum - 1; i++) {
-         //console.log(i);
          tData[i] = {}
          tData[i].indexNum = i;
          tData[i].url = $("#urlid" + i).text();
          tData[i].title = $("#nameid" + i).text();
       };
-      //console.log(tData); // <--- returns right data
+      // Put object array into songData object
       songData.trackData = tData;
-      //console.log(songData);
-
-      //render playlist & audio player
-
+      // Render playlist & audio player (1st iteration only)
       renderPlaylist(songData);
       renderAudioPlayer();
    });
@@ -161,16 +167,17 @@ $(document).ready(function(){
 });
 
 function renderPlaylist(data){
-   //console.log("Git to renderTest");
    //console.log(timesRun);
+   /* - Note: With refactor this If statment may not be needed */
    if (timesRun === 0) {
-      //console.log("IF");
+      // Runs first time with original list.
       timesRun += 1;
       var playlistTemplate = _.template($('#playlist-template').html());
       var playlistHtml = playlistTemplate(songData);
       $("#playlist-placeholder").append(playlistHtml);
    } else if (timesRun > 0) {
-      //console.log("ELSE IF");
+      // Runs everytime after the first time.
+      // Empties the placeholder before appending new list
       $("#playlist-placeholder").empty();
       timesRun += 1;
       var playlistTemplate = _.template($('#playlist-template').html());
@@ -186,7 +193,7 @@ function filterList() {
       if ($("#chkbx" + n).is(':checked')) {
          songData.trackData[n] = songData.trackData[n];
       } else {
-         //pull unchecked song and add next selection
+         // Pull unchecked song and add next selection
          nextTrackNum += 1;
 
          console.log("Next Track id = " + nextTrackNum);
@@ -197,18 +204,21 @@ function filterList() {
          songData.trackData[n].title = $("#nameid" + nextTrackNum).text();
       };
    };
-   //console.log(songData.trackData);
-   //render new list
+   //console.log(songData.trackData); // <-- Unselected songs change correctly
+   // Render new list
    renderPlaylist(songData);
 }
 
 function renderAudioPlayer() {
+   // Renders the audio player to the screen first time
+   // playlsit is generated.
    var audioTemplate = _.template($('#audio-template').html());
    var audioHtml = audioTemplate(songData);
    $("#audio-placeholder").append(audioHtml);
 }
 
 </script>
+
 
 <!--
 ////////////////////////////////////////////////////////////
@@ -217,11 +227,14 @@ function renderAudioPlayer() {
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 -->
+
 <!-- ** 1 ** -->
+<!-- Playlist -->
 <script type="text/template" id="playlist-template">
    <div class="play-list" id="playlist-placeholder">
       <div id="play-list">
          <h3>Playlist</h3>
+         <!-- Simply to show what data has been saved so far -->
          <ul>
             <li> Genre: {{= songData.genre}}</li>
             <li> Num of Songs: {{= songData.tracksNum }} </li>
@@ -231,12 +244,14 @@ function renderAudioPlayer() {
          <form id="song-list">
             <ul id="playlist-list">
                {{ for (var j = 0; j <= songData.trackData.length-1; j++){ }}
+               <!-- Note: This line is an <a> inside <label> , connected to an <input> chkbox, all wrapped in <li> -->
                <li> <input type="checkbox" id="chkbx{{= j }}"> <label for="chkbx{{= j }}"> <a href="{{= songData.trackData[j].url }}"> {{= songData.trackData[j].title }} </a> </label> </li>
                {{ } }}
             </ul>
             <br>
             <button id="re-render">Regenerate</button>
             <script>
+            // Function placed here to ensure event is registered once element is on the page, not before.
                $("#re-render").on("click", function(e){
                   e.preventDefault();
                   e.stopImmediatePropagation();
@@ -248,13 +263,16 @@ function renderAudioPlayer() {
    </div>
 </script>
 
+
 <!-- ** 2 ** -->
+<!-- Audio Player -->
 <script type="text/template" id="audio-template">
    <div id="audio">
       <div id="player">
          <%= audio_tag @tracks[0], autoplay: true, controls: true, id: 'audio' %>
       </div>
       <script>
+      // Function isn't called until audio element is rendered to page.
          init();
       </script>
    </div>
